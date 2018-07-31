@@ -10,7 +10,7 @@
 struct Routes {
   char * method;
   char * name;
-  void (*callback)(char * params);
+  void (*callback)(char * query, char* body);
 };
 
 class RestServer {
@@ -19,7 +19,7 @@ public:
 
   void run();
 
-  void addRoute(char * method, char * route, void (*f)(char *));
+  void addRoute(char * method, char * route, void (*f)(char *, char *));
 
   void addData(char* name, String& value);
   void addData(char* name, uint16_t value);

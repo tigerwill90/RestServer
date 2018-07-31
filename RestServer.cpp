@@ -31,7 +31,7 @@ void RestServer::reset() {
   bufferIndex_ = 0;
 }
 
-void RestServer::addRoute(char * method, char * route, void (*f)(char * params) ) {
+void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body) ) {
   // memcpy(routes_[routesIndex_].name, route, strlen(route)+1);
   routes_[routesIndex_].method   = method;
   routes_[routesIndex_].name     = route;
@@ -148,6 +148,11 @@ void RestServer::check() {
   bool queryCatchFinished = false;
   uint8_t q = 0;
 
+  char body[BODY_LENGTH] = {0};
+  //bool bodyPrepare = false;
+  //bool bodyCatchFinished = false;
+  uint8_t b = 0;
+
   char method[METHODS_LENGTH] = {0};
   bool methodCatchFinished = false;
   uint8_t m = 0;
@@ -164,10 +169,11 @@ void RestServer::check() {
     // so you can send a reply or check the body of the http header
     if (c == '\n' && currentLineIsBlank) {
       // Here is where the parameters of other HTTP Methods will be.
-      while(client_.available() && client_.connected())
-        query[q++] = (client_.read());
+      while(client_.available() && client_.connected()) {
+          body[b++] = (client_.read());
+      }
 
-      break;
+      break; //Finish catching mod
     }
 
     if (c == '\n')
@@ -185,9 +191,9 @@ void RestServer::check() {
 
     if(routePrepare && !routeCatchFinished)
       route[r++] = c;
-    // End route catch process //////////////////
+    // End route catch process
 
-    // Start query catch process ////////////////
+    // Start query catch process
     if(c == ' ' && queryPrepare)
       queryCatchFinished = true;
 
@@ -210,19 +216,21 @@ void RestServer::check() {
 
   for(int i = 0; i < routesIndex_; i++) {
       // Check if the routes names matches
-      if(strncmp( route, routes_[i].name, sizeof(routes_[i].name) ) != 0)
+      if(strncmp( route, routes_[i].name, sizeof(routes_[i].name) ) != 0) {
         continue;
+      }
 
       // Check if the HTTP METHOD matters for this route
       if(strncmp( routes_[i].method, "*", sizeof(routes_[i].method) ) != 0) {
         // If it matters, check if the methods matches
-        if(strncmp( method, routes_[i].method, sizeof(routes_[i].method) ) != 0)
+        if(strncmp( method, routes_[i].method, sizeof(routes_[i].method) ) != 0) {
           continue;
+        }
       }
 
       // Route callback (function)
       // DLOG(route);
-      routes_[i].callback(query);
+      routes_[i].callback(query, body);
       LOG("Route callback!");
   }
 
