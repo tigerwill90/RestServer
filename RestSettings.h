@@ -2,7 +2,7 @@
 #define restsettings_h
 
 #ifndef ROUTES_TOTAL
-#define ROUTES_TOTAL 5
+#define ROUTES_TOTAL 3
 #endif
 
 #ifndef ROUTES_LENGHT
@@ -22,7 +22,7 @@
 #endif
 
 #ifndef OUTPUT_BUFFER_SIZE
-#define OUTPUT_BUFFER_SIZE 250
+#define OUTPUT_BUFFER_SIZE 50
 #endif
 
 #define JSON_START() addToBuffer("{ ");

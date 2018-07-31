@@ -1,6 +1,6 @@
 #include "RestServer.h"
 
-RestServer::RestServer(EthernetServer& server): server_(server), routesIndex_(0), bufferIndex_(0) {
+RestServer::RestServer(EthernetServer& server): server_(server), routesIndex_(0), bufferIndex_(0), dataIndex_(0) {
 }
 
 void RestServer::run() {
@@ -8,7 +8,7 @@ void RestServer::run() {
   if (client_) {
     JSON_START();
     // Check the received request and process it
-    check();
+    int routeIndex = check();
     bufferIndex_--;
     JSON_CLOSE();
 
@@ -31,15 +31,17 @@ void RestServer::reset() {
   bufferIndex_ = 0;
 }
 
-void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body) ) {
+void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body)) {
   // memcpy(routes_[routesIndex_].name, route, strlen(route)+1);
   routes_[routesIndex_].method   = method;
   routes_[routesIndex_].name     = route;
   routes_[routesIndex_].callback = f;
 
-  // DLOG( "Route added:" );
-  // DLOG( routes_[routesIndex_].name );
   routesIndex_++;
+}
+
+void RestServer::onNotFound(void (*f)(char* route)) {
+  notFoundCallback = f;
 }
 
 void RestServer::addToBuffer(char * value) {
@@ -47,6 +49,12 @@ void RestServer::addToBuffer(char * value) {
     buffer_[bufferIndex_+i] = value[i];
   }
   bufferIndex_ = bufferIndex_ + strlen(value);
+}
+
+void RestServer::addToBufferTest(char * value, int routeIndex) {
+  for (int i = 0; i < strlen(value); i++){
+    payload_[routeIndex].jsonBuffer[i] = value[i];
+  }
 }
 
 void RestServer::addData(char* name, char * value) {
@@ -70,6 +78,8 @@ void RestServer::addData(char* name, char * value) {
   bufferAux[idx++] = ',';
 
   addToBuffer(bufferAux);
+  //addToBufferTest(bufferAux, dataIndex_);
+  dataIndex_++;
 }
 
 // Add to output buffer_
@@ -128,16 +138,17 @@ void RestServer::send(uint8_t chunkSize, uint8_t delayTime) {
     memcpy(bufferAux, buffer_ + i*chunkSize, chunkSize);
     bufferAux[chunkSize] = '\0';
 
-    // DLOGChar(bufferAux);
     client_.print(bufferAux);
 
     // Wait for client_ to get data
     delay(delayTime);
   }
+
+  client_.stop();
 }
 
 // Extract information about the HTTP Header
-void RestServer::check() {
+int RestServer::check() {
   char route[ROUTES_LENGHT] = {0};
   bool routePrepare = false;
   bool routeCatchFinished = false;
@@ -214,24 +225,33 @@ void RestServer::check() {
 
   }
 
+  bool routeMatch = false;
+  int routeMatchIndex = -1;
   for(int i = 0; i < routesIndex_; i++) {
       // Check if the routes names matches
-      if(strncmp( route, routes_[i].name, sizeof(routes_[i].name) ) != 0) {
-        continue;
-      }
-
-      // Check if the HTTP METHOD matters for this route
-      if(strncmp( routes_[i].method, "*", sizeof(routes_[i].method) ) != 0) {
-        // If it matters, check if the methods matches
-        if(strncmp( method, routes_[i].method, sizeof(routes_[i].method) ) != 0) {
-          continue;
+      if(strcmp(route, routes_[i].name) == 0) {
+        // Check if the HTTP METHOD matters
+        if(strcmp(routes_[i].method,"*") == 0) {
+          routeMatch = true;
+          routeMatchIndex = i;
+          break;
+          // If it matters, check if the methods matches
+        } else if(strcmp(method, routes_[i].method) == 0) {
+          routeMatch = true;
+          routeMatchIndex = i;
+          break;
         }
       }
-
-      // Route callback (function)
-      // DLOG(route);
-      routes_[i].callback(query, body);
-      LOG("Route callback!");
   }
 
+  // If route match, execute callback
+  if (routeMatch) {
+    routes_[routeMatchIndex].callback(query, body);
+    LOG("Route callback!");
+  } else {
+    notFoundCallback(route);
+    LOG("Not found callback!");
+  }
+
+  return routeMatchIndex;
 }
