@@ -10,11 +10,10 @@
 struct Routes {
   char* method;
   char* name;
-  void (*callback)(char* query, char* body);
+  void (*callback)(char* query, char* body, char* bearer);
 };
 
 struct Payload {
-  int routeIndex;
   char jsonBuffer[OUTPUT_BUFFER_SIZE];
 };
 
@@ -24,8 +23,9 @@ public:
 
   void run();
 
-  void addRoute(char* method, char* route, void (*f)(char *, char *));
+  void addRoute(char* method, char* route, void (*f)(char *, char *, char *));
   void onNotFound(void (*f)(char *));
+  void sendResponse(uint8_t delayTime);
 
   void addData(char* name, String& value);
   void addData(char* name, uint16_t value);
@@ -47,8 +47,6 @@ private:
   void reset();
   void (*notFoundCallback)(char* route);
   void addToBuffer(char* value);
-  void send(uint8_t chunkSize, uint8_t delayTime);
-  void send(uint8_t delayTime);
 };
 
 #endif

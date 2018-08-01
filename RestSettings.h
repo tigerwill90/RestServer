@@ -5,16 +5,24 @@
 #define ROUTES_TOTAL 3
 #endif
 
+#ifndef HEADER_TOTAL
+#define HEADER_TOTAL 3
+#endif
+
 #ifndef ROUTES_LENGHT
 #define ROUTES_LENGHT 30
 #endif
 
 #ifndef QUERY_LENGTH
-#define QUERY_LENGTH 50
+#define QUERY_LENGTH 30
 #endif
 
 #ifndef BODY_LENGTH
-#define BODY_LENGTH 250
+#define BODY_LENGTH 100
+#endif
+
+#ifndef HEADERS_LENGTH
+#define HEADERS_LENGTH 250
 #endif
 
 #ifndef HTTP_COMMON_HEADER

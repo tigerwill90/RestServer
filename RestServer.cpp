@@ -23,14 +23,16 @@ RestServer::RestServer(EthernetServer& server): server_(server), routesIndex_(0)
 void RestServer::run() {
   client_ = server_.available();
   if (client_) {
+    LOG("Connexion start");
     // Check the received request and process it
     check();
 
     // Send data for the client
-    send(0);
+    //send(0);
 
     // Stop the client connection
     client_.stop();
+    LOG("Connexion stop !");
 
     // Necessary resets
     reset();
@@ -46,7 +48,7 @@ void RestServer::reset() {
   dataIndex_ = 0;
 }
 
-void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body)) {
+void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body, char* bearer)) {
   // memcpy(routes_[routesIndex_].name, route, strlen(route)+1);
   routes_[routesIndex_].method   = method;
   routes_[routesIndex_].name     = route;
@@ -127,8 +129,13 @@ void RestServer::addData(char* name, float value){
 /**
  *
  **/
-void RestServer::send(uint8_t delayTime) {
-  // First, send the HTTP Common Header
+void RestServer::sendResponse(uint8_t delayTime) {
+
+  if (strlen(payload_[dataIndex_].jsonBuffer) == 1) {
+    payload_[dataIndex_].jsonBuffer[strlen(payload_[dataIndex_].jsonBuffer)] = '}';
+  }
+  payload_[dataIndex_].jsonBuffer[strlen(payload_[dataIndex_].jsonBuffer) - 1] = '}';
+
   client_.println(HTTP_COMMON_HEADER);
 
   for (uint8_t i = 0; i < strlen(payload_[dataIndex_].jsonBuffer); i++) {
@@ -156,8 +163,15 @@ void RestServer::check() {
   bool methodCatchFinished = false;
   uint8_t m = 0;
 
+  char bearer[HEADERS_LENGTH] = {0};
+  bool headerValue = false;
+  bool bearerMatch = false;
+  uint8_t lineCount = 0;
+  uint8_t h = 0;
+
   bool currentLineIsBlank = true;
   char c;
+  char cLast;
   while ( client_.connected() && client_.available() ) {
     c = client_.read();
     // DLOGChar(c);
@@ -175,8 +189,11 @@ void RestServer::check() {
       break; //Finish catching mod
     }
 
-    if (c == '\n')
+    if (c == '\n') {
       currentLineIsBlank = true; // you're starting a new line
+      lineCount++;
+    }
+
     else if (c != '\r')
       currentLineIsBlank = false; // you've gotten a character on the current line
     // End end of line process //////////////////
@@ -211,6 +228,30 @@ void RestServer::check() {
       method[m++] = c;
     // End method catch process /////////////////
 
+    /**
+     * Check for specific Bearer name header and extract it
+     *
+     */
+    if (lineCount > 1 && !bearerMatch) {
+      if (c == ':') {
+        headerValue = true;
+      }
+      if (c == '\n') {
+        if (strstr(bearer, "Bearer") == NULL) {
+          h = 0;
+          memset(&bearer[h], 0, sizeof(bearer));
+        }
+        else {
+          bearerMatch = true;
+        }
+        headerValue = false;
+      }
+
+      if (headerValue && c != ':' && cLast != ':')
+        bearer[h++] = c;
+    }
+
+    cLast = c;
   }
 
   bool routeMatch = false;
@@ -235,15 +276,10 @@ void RestServer::check() {
   // If route match, execute callback
   payload_[dataIndex_].jsonBuffer[0] = '{';
   if (routeMatch) {
-    routes_[dataIndex_].callback(query, body);
+    routes_[dataIndex_].callback(query, body, bearer);
     LOG("Route callback !");
   } else {
     notFoundCallback(route);
     LOG("Not found callback !");
   }
-  Serial.println(strlen(payload_[dataIndex_].jsonBuffer));
-  if (strlen(payload_[dataIndex_].jsonBuffer) == 1) {
-    payload_[dataIndex_].jsonBuffer[strlen(payload_[dataIndex_].jsonBuffer)] = '}';
-  }
-  payload_[dataIndex_].jsonBuffer[strlen(payload_[dataIndex_].jsonBuffer) - 1] = '}';
 }
