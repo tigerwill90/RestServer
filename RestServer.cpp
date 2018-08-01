@@ -1,19 +1,33 @@
 #include "RestServer.h"
 
-RestServer::RestServer(EthernetServer& server): server_(server), routesIndex_(0), bufferIndex_(0), dataIndex_(0) {
+// Generic catch-all implementation.
+template <typename T_ty> struct TypeInfo { static const char * name; };
+template <typename T_ty> const char * TypeInfo<T_ty>::name = "unknown";
+
+// Handy macro to make querying stuff easier.
+#define TYPE_NAME(var) TypeInfo< typeof(var) >::name
+
+// Handy macro to make defining stuff easier.
+#define MAKE_TYPE_INFO(type)  template <> const char * TypeInfo<type>::name = #type;
+
+// Type-specific implementations.
+MAKE_TYPE_INFO(char)
+MAKE_TYPE_INFO(int)
+MAKE_TYPE_INFO(float)
+MAKE_TYPE_INFO(uint16_t)
+MAKE_TYPE_INFO(uint8_t)
+
+RestServer::RestServer(EthernetServer& server): server_(server), routesIndex_(0), bufferIndex_(1) {
 }
 
 void RestServer::run() {
   client_ = server_.available();
   if (client_) {
-    JSON_START();
     // Check the received request and process it
-    int routeIndex = check();
-    bufferIndex_--;
-    JSON_CLOSE();
+    check();
 
     // Send data for the client
-    send(8, 0);
+    send(0);
 
     // Stop the client connection
     client_.stop();
@@ -26,9 +40,11 @@ void RestServer::run() {
 void RestServer::reset() {
   // Reset buffer
   memset(&buffer_[0], 0, sizeof(buffer_));
+  memset(&payload_[dataIndex_].jsonBuffer[0], 0, sizeof(payload_[dataIndex_].jsonBuffer));
 
   // Reset buffer index
-  bufferIndex_ = 0;
+  bufferIndex_ = 1;
+  dataIndex_ = 0;
 }
 
 void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body)) {
@@ -46,14 +62,8 @@ void RestServer::onNotFound(void (*f)(char* route)) {
 
 void RestServer::addToBuffer(char * value) {
   for (int i = 0; i < strlen(value); i++){
-    buffer_[bufferIndex_+i] = value[i];
-  }
-  bufferIndex_ = bufferIndex_ + strlen(value);
-}
-
-void RestServer::addToBufferTest(char * value, int routeIndex) {
-  for (int i = 0; i < strlen(value); i++){
-    payload_[routeIndex].jsonBuffer[i] = value[i];
+    payload_[dataIndex_].jsonBuffer[bufferIndex_] = value[i];
+    bufferIndex_++;
   }
 }
 
@@ -78,8 +88,6 @@ void RestServer::addData(char* name, char * value) {
   bufferAux[idx++] = ',';
 
   addToBuffer(bufferAux);
-  //addToBufferTest(bufferAux, dataIndex_);
-  dataIndex_++;
 }
 
 // Add to output buffer_
@@ -104,7 +112,6 @@ void RestServer::addData(char* name, uint16_t value){
 void RestServer::addData(char* name, int value){
   char number[10];
   itoa(value,number,10);
-
   addData(name, number);
 }
 
@@ -118,6 +125,7 @@ void RestServer::addData(char* name, float value){
 }
 // #endif
 
+// TODO to supress
 // Send the HTTP response for the client
 void RestServer::send(uint8_t chunkSize, uint8_t delayTime) {
   // First, send the HTTP Common Header
@@ -143,12 +151,23 @@ void RestServer::send(uint8_t chunkSize, uint8_t delayTime) {
     // Wait for client_ to get data
     delay(delayTime);
   }
+}
 
-  client_.stop();
+/**
+ *
+ **/
+void RestServer::send(uint8_t delayTime) {
+  // First, send the HTTP Common Header
+  client_.println(HTTP_COMMON_HEADER);
+
+  for (uint8_t i = 0; i < strlen(payload_[dataIndex_].jsonBuffer); i++) {
+  client_.print(payload_[dataIndex_].jsonBuffer[i]);
+    delay(delayTime);
+  }
 }
 
 // Extract information about the HTTP Header
-int RestServer::check() {
+void RestServer::check() {
   char route[ROUTES_LENGHT] = {0};
   bool routePrepare = false;
   bool routeCatchFinished = false;
@@ -160,8 +179,6 @@ int RestServer::check() {
   uint8_t q = 0;
 
   char body[BODY_LENGTH] = {0};
-  //bool bodyPrepare = false;
-  //bool bodyCatchFinished = false;
   uint8_t b = 0;
 
   char method[METHODS_LENGTH] = {0};
@@ -233,25 +250,29 @@ int RestServer::check() {
         // Check if the HTTP METHOD matters
         if(strcmp(routes_[i].method,"*") == 0) {
           routeMatch = true;
-          routeMatchIndex = i;
+          dataIndex_ = i;
           break;
           // If it matters, check if the methods matches
         } else if(strcmp(method, routes_[i].method) == 0) {
           routeMatch = true;
-          routeMatchIndex = i;
+          dataIndex_ = i;
           break;
         }
       }
   }
 
   // If route match, execute callback
+  payload_[dataIndex_].jsonBuffer[0] = '{';
   if (routeMatch) {
-    routes_[routeMatchIndex].callback(query, body);
-    LOG("Route callback!");
+    routes_[dataIndex_].callback(query, body);
+    LOG("Route callback !");
   } else {
     notFoundCallback(route);
-    LOG("Not found callback!");
+    LOG("Not found callback !");
   }
-
-  return routeMatchIndex;
+  Serial.println(strlen(payload_[dataIndex_].jsonBuffer));
+  if (strlen(payload_[dataIndex_].jsonBuffer) == 1) {
+    payload_[dataIndex_].jsonBuffer[strlen(payload_[dataIndex_].jsonBuffer)] = '}';
+  }
+  payload_[dataIndex_].jsonBuffer[strlen(payload_[dataIndex_].jsonBuffer) - 1] = '}';
 }

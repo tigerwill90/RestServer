@@ -15,7 +15,7 @@ struct Routes {
 
 struct Payload {
   int routeIndex;
-  char jsonBuffer[50];
+  char jsonBuffer[OUTPUT_BUFFER_SIZE];
 };
 
 class RestServer {
@@ -38,18 +38,18 @@ private:
   Payload payload_[ROUTES_TOTAL];
   uint8_t routesIndex_;
   uint8_t dataIndex_;
-  char buffer_[OUTPUT_BUFFER_SIZE];
   uint16_t bufferIndex_;
+  char buffer_[OUTPUT_BUFFER_SIZE];
 
   EthernetServer& server_;
   EthernetClient client_;
 
-  int check();
+  void check();
   void reset();
   void (*notFoundCallback)(char* route);
   void addToBuffer(char* value);
-  void addToBufferTest(char* value, int routeIndex);
   void send(uint8_t chunkSize, uint8_t delayTime);
+  void send(uint8_t delayTime);
 };
 
 #endif
