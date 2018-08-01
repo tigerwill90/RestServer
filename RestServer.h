@@ -39,7 +39,6 @@ private:
   uint8_t routesIndex_;
   uint8_t dataIndex_;
   uint16_t bufferIndex_;
-  char buffer_[OUTPUT_BUFFER_SIZE];
 
   EthernetServer& server_;
   EthernetClient client_;

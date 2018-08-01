@@ -39,7 +39,6 @@ void RestServer::run() {
 
 void RestServer::reset() {
   // Reset buffer
-  memset(&buffer_[0], 0, sizeof(buffer_));
   memset(&payload_[dataIndex_].jsonBuffer[0], 0, sizeof(payload_[dataIndex_].jsonBuffer));
 
   // Reset buffer index
@@ -94,9 +93,9 @@ void RestServer::addData(char* name, char * value) {
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(ESP8266) || defined(CORE_WILDFIRE)
 void RestServer::addData(char* name, String& value){
   for (int i = 0; i < value.length(); i++){
-    buffer_[bufferIndex_+i] = value[i];
+    payload_[dataIndex_].jsonBuffer[bufferIndex_] = value[i];
+    bufferIndex_++;
   }
-  bufferIndex_ = bufferIndex_ + value.length();
 }
 #endif
 
@@ -124,34 +123,6 @@ void RestServer::addData(char* name, float value){
   addData(name, number);
 }
 // #endif
-
-// TODO to supress
-// Send the HTTP response for the client
-void RestServer::send(uint8_t chunkSize, uint8_t delayTime) {
-  // First, send the HTTP Common Header
-  client_.println(HTTP_COMMON_HEADER);
-
-  // Send all of it
-  if (chunkSize == 0)
-    client_.print(buffer_);
-
-  // Send chunk by chunk #####################################
-
-  // Max iterations
-  uint8_t max = (int)(bufferIndex_/chunkSize) + 1;
-
-  // Send data
-  for (uint8_t i = 0; i < max; i++) {
-    char bufferAux[chunkSize+1];
-    memcpy(bufferAux, buffer_ + i*chunkSize, chunkSize);
-    bufferAux[chunkSize] = '\0';
-
-    client_.print(bufferAux);
-
-    // Wait for client_ to get data
-    delay(delayTime);
-  }
-}
 
 /**
  *
