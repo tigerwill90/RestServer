@@ -13,10 +13,6 @@ struct Routes {
   void (*callback)(char* query, char* body, char* bearer);
 };
 
-struct Payload {
-  char jsonBuffer[OUTPUT_BUFFER_SIZE];
-};
-
 class RestServer {
 public:
   RestServer(EthernetServer& client);
@@ -25,7 +21,7 @@ public:
 
   void addRoute(char* method, char* route, void (*f)(char *, char *, char *));
   void onNotFound(void (*f)(char *));
-  void sendResponse(uint8_t delayTime);
+  void sendResponse(char* status, char* cententType, uint8_t delayTime);
 
   void addData(char* name, String& value);
   void addData(char* name, uint16_t value);
@@ -35,7 +31,7 @@ public:
 
 private:
   Routes routes_[ROUTES_TOTAL];
-  Payload payload_[ROUTES_TOTAL];
+  char jsonBuffer[OUTPUT_BUFFER_SIZE];
   uint8_t routesIndex_;
   uint8_t dataIndex_;
   uint16_t bufferIndex_;

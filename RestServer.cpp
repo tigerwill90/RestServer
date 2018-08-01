@@ -41,15 +41,13 @@ void RestServer::run() {
 
 void RestServer::reset() {
   // Reset buffer
-  memset(&payload_[dataIndex_].jsonBuffer[0], 0, sizeof(payload_[dataIndex_].jsonBuffer));
-
+  memset(&jsonBuffer[0], 0, sizeof(jsonBuffer));
   // Reset buffer index
   bufferIndex_ = 1;
   dataIndex_ = 0;
 }
 
 void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body, char* bearer)) {
-  // memcpy(routes_[routesIndex_].name, route, strlen(route)+1);
   routes_[routesIndex_].method   = method;
   routes_[routesIndex_].name     = route;
   routes_[routesIndex_].callback = f;
@@ -63,7 +61,7 @@ void RestServer::onNotFound(void (*f)(char* route)) {
 
 void RestServer::addToBuffer(char * value) {
   for (int i = 0; i < strlen(value); i++){
-    payload_[dataIndex_].jsonBuffer[bufferIndex_] = value[i];
+    jsonBuffer[bufferIndex_] = value[i];
     bufferIndex_++;
   }
 }
@@ -95,7 +93,7 @@ void RestServer::addData(char* name, char * value) {
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(ESP8266) || defined(CORE_WILDFIRE)
 void RestServer::addData(char* name, String& value){
   for (int i = 0; i < value.length(); i++){
-    payload_[dataIndex_].jsonBuffer[bufferIndex_] = value[i];
+    jsonBuffer[bufferIndex_] = value[i];
     bufferIndex_++;
   }
 }
@@ -129,19 +127,22 @@ void RestServer::addData(char* name, float value){
 /**
  *
  **/
-void RestServer::sendResponse(uint8_t delayTime) {
+void RestServer::sendResponse(char* status, char* cententType, uint8_t delayTime) {
 
-  if (strlen(payload_[dataIndex_].jsonBuffer) == 1) {
-    payload_[dataIndex_].jsonBuffer[strlen(payload_[dataIndex_].jsonBuffer)] = '}';
+  if (strlen(jsonBuffer) == 1) {
+    jsonBuffer[strlen(jsonBuffer)] = '}';
+  } else {
+    jsonBuffer[strlen(jsonBuffer) - 1] = '}';
   }
-  payload_[dataIndex_].jsonBuffer[strlen(payload_[dataIndex_].jsonBuffer) - 1] = '}';
 
+  client_.print(status);
   client_.println(HTTP_COMMON_HEADER);
 
-  for (uint8_t i = 0; i < strlen(payload_[dataIndex_].jsonBuffer); i++) {
-  client_.print(payload_[dataIndex_].jsonBuffer[i]);
+  for (uint8_t i = 0; i < strlen(jsonBuffer); i++) {
+  client_.print(jsonBuffer[i]);
     delay(delayTime);
   }
+
 }
 
 // Extract information about the HTTP Header
@@ -174,7 +175,6 @@ void RestServer::check() {
   char cLast;
   while ( client_.connected() && client_.available() ) {
     c = client_.read();
-    // DLOGChar(c);
 
     // Start end of line process ////////////////
     // if you've gotten to the end of the line (received a newline
@@ -255,7 +255,6 @@ void RestServer::check() {
   }
 
   bool routeMatch = false;
-  int routeMatchIndex = -1;
   for(int i = 0; i < routesIndex_; i++) {
       // Check if the routes names matches
       if(strcmp(route, routes_[i].name) == 0) {
@@ -274,7 +273,7 @@ void RestServer::check() {
   }
 
   // If route match, execute callback
-  payload_[dataIndex_].jsonBuffer[0] = '{';
+  jsonBuffer[0] = '{';
   if (routeMatch) {
     routes_[dataIndex_].callback(query, body, bearer);
     LOG("Route callback !");
