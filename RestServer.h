@@ -33,7 +33,6 @@ private:
   Routes routes_[ROUTES_TOTAL];
   char jsonBuffer[OUTPUT_BUFFER_SIZE];
   uint8_t routesIndex_;
-  uint8_t dataIndex_;
   uint16_t bufferIndex_;
 
   EthernetServer& server_;

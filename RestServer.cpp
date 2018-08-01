@@ -44,7 +44,6 @@ void RestServer::reset() {
   memset(&jsonBuffer[0], 0, sizeof(jsonBuffer));
   // Reset buffer index
   bufferIndex_ = 1;
-  dataIndex_ = 0;
 }
 
 void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body, char* bearer)) {
@@ -255,18 +254,19 @@ void RestServer::check() {
   }
 
   bool routeMatch = false;
+  uint8_t routesIndex = -1;
   for(int i = 0; i < routesIndex_; i++) {
       // Check if the routes names matches
       if(strcmp(route, routes_[i].name) == 0) {
         // Check if the HTTP METHOD matters
         if(strcmp(routes_[i].method,"*") == 0) {
           routeMatch = true;
-          dataIndex_ = i;
+          routesIndex = i;
           break;
           // If it matters, check if the methods matches
         } else if(strcmp(method, routes_[i].method) == 0) {
           routeMatch = true;
-          dataIndex_ = i;
+          routesIndex = i;
           break;
         }
       }
@@ -275,7 +275,7 @@ void RestServer::check() {
   // If route match, execute callback
   jsonBuffer[0] = '{';
   if (routeMatch) {
-    routes_[dataIndex_].callback(query, body, bearer);
+    routes_[routesIndex].callback(query, body, bearer);
     LOG("Route callback !");
   } else {
     notFoundCallback(route);
