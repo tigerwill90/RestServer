@@ -1,22 +1,5 @@
 #include "RestServer.h"
 
-// Generic catch-all implementation.
-template <typename T_ty> struct TypeInfo { static const char * name; };
-template <typename T_ty> const char * TypeInfo<T_ty>::name = "unknown";
-
-// Handy macro to make querying stuff easier.
-#define TYPE_NAME(var) TypeInfo< typeof(var) >::name
-
-// Handy macro to make defining stuff easier.
-#define MAKE_TYPE_INFO(type)  template <> const char * TypeInfo<type>::name = #type;
-
-// Type-specific implementations.
-MAKE_TYPE_INFO(char)
-MAKE_TYPE_INFO(int)
-MAKE_TYPE_INFO(float)
-MAKE_TYPE_INFO(uint16_t)
-MAKE_TYPE_INFO(uint8_t)
-
 RestServer::RestServer(EthernetServer& server): server_(server), routesIndex_(0), bufferIndex_(1) {
 }
 
@@ -26,9 +9,6 @@ void RestServer::run() {
     LOG("Connexion start");
     // Check the received request and process it
     check();
-
-    // Send data for the client
-    //send(0);
 
     // Stop the client connection
     client_.stop();

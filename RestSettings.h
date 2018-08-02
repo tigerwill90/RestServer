@@ -5,20 +5,16 @@
 #define ROUTES_TOTAL 3
 #endif
 
-#ifndef HEADER_TOTAL
-#define HEADER_TOTAL 3
-#endif
-
 #ifndef ROUTES_LENGHT
-#define ROUTES_LENGHT 30
+#define ROUTES_LENGHT 20
 #endif
 
 #ifndef QUERY_LENGTH
-#define QUERY_LENGTH 30
+#define QUERY_LENGTH 20
 #endif
 
 #ifndef BODY_LENGTH
-#define BODY_LENGTH 100
+#define BODY_LENGTH 85
 #endif
 
 #ifndef HEADERS_LENGTH
@@ -30,7 +26,7 @@
 #endif
 
 #ifndef OUTPUT_BUFFER_SIZE
-#define OUTPUT_BUFFER_SIZE 100
+#define OUTPUT_BUFFER_SIZE 85
 #endif
 
 #define METHODS_LENGTH 7
