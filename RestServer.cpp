@@ -26,10 +26,10 @@ void RestServer::reset() {
   bufferIndex_ = 1;
 }
 
-void RestServer::addRoute(char * method, char * route, void (*f)(char* query, char* body, char* bearer)) {
-  routes_[routesIndex_].method   = method;
-  routes_[routesIndex_].name     = route;
-  routes_[routesIndex_].callback = f;
+void RestServer::addRoute(const char * method, const char * route, void (*f)(const char* query, const char* body, const char* bearer)) {
+  routes_[routesIndex_].method   = (char *)method;
+  routes_[routesIndex_].name     = (char *)route;
+  routes_[routesIndex_].callback = (void(*)(char *, char *, char*))f;
 
   routesIndex_++;
 }
@@ -46,7 +46,7 @@ void RestServer::addToBuffer(char * value) {
 }
 
 void RestServer::addData(char* name, char * value) {
-  char bufferAux[255] = {0};
+  char bufferAux[OUTPUT_BUFFER_SIZE] = {0};
   uint16_t idx = 0;
 
   // Format the data as:
@@ -106,7 +106,7 @@ void RestServer::addData(char* name, float value){
 /**
  *
  **/
-void RestServer::sendResponse(char* status, char* cententType, uint8_t delayTime) {
+void RestServer::sendResponse(const char* status, const char* cententType, uint8_t delayTime) {
 
   if (strlen(jsonBuffer) == 1) {
     jsonBuffer[strlen(jsonBuffer)] = '}';
@@ -212,9 +212,9 @@ void RestServer::check() {
      *
      */
     if (lineCount > 1 && !bearerMatch) {
-      if (c == ':') {
-        headerValue = true;
-      }
+      // if (c == ':') {
+      //   headerValue = true;
+      // }
       if (c == '\n') {
         if (strstr(bearer, "Bearer") == NULL) {
           h = 0;
@@ -223,11 +223,12 @@ void RestServer::check() {
         else {
           bearerMatch = true;
         }
-        headerValue = false;
+        //headerValue = false;
       }
+      bearer[h++] = c;
 
-      if (headerValue && c != ':' && cLast != ':')
-        bearer[h++] = c;
+      // if (headerValue && c != ':' && cLast != ':')
+      //   bearer[h++] = c;
     }
 
     cLast = c;
@@ -256,9 +257,9 @@ void RestServer::check() {
   jsonBuffer[0] = '{';
   if (routeMatch) {
     routes_[routesIndex].callback(query, body, bearer);
-    LOG("Route callback !");
+    //LOG("Route callback !");
   } else {
     notFoundCallback(route);
-    LOG("Not found callback !");
+    //LOG("Not found callback !");
   }
 }

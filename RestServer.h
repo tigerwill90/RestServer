@@ -19,9 +19,9 @@ public:
 
   void run();
 
-  void addRoute(char* method, char* route, void (*f)(char *, char *, char *));
+  void addRoute(const char* method, const char* route, void (*f)(const char *, const char *, const char *));
   void onNotFound(void (*f)(char *));
-  void sendResponse(char* status, char* cententType, uint8_t delayTime);
+  void sendResponse(const char* status, const char* cententType, uint8_t delayTime);
 
   void addData(char* name, String& value);
   void addData(char* name, uint16_t value);
