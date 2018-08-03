@@ -21,7 +21,7 @@ void RestServer::run() {
 
 void RestServer::reset() {
   // Reset buffer
-  memset(&jsonBuffer[0], 0, sizeof(jsonBuffer));
+  memset(jsonBuffer, 0, sizeof(jsonBuffer));
   // Reset buffer index
   bufferIndex_ = 1;
 }
@@ -106,7 +106,7 @@ void RestServer::addData(char* name, float value){
 /**
  *
  **/
-void RestServer::sendResponse(const char* status, const char* cententType, uint8_t delayTime) {
+void RestServer::sendResponse(const char* status, uint8_t delayTime) {
 
   if (strlen(jsonBuffer) == 1) {
     jsonBuffer[strlen(jsonBuffer)] = '}';
@@ -240,7 +240,7 @@ void RestServer::check() {
       // Check if the routes names matches
       if(strcmp(route, routes_[i].name) == 0) {
         // Check if the HTTP METHOD matters
-        if(strcmp(routes_[i].method,"*") == 0) {
+        if(strcmp("*",routes_[i].method) == 0) {
           routeMatch = true;
           routesIndex = i;
           break;
