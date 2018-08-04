@@ -1,5 +1,7 @@
 #include "RestServer.h"
 
+const String HTTP_COMMON_HEADER PROGMEM = "Access-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: POST, GET, PUT, OPTIONS\r\nContent-Type: application/json\r\nConnection: close\r\n";
+
 RestServer::RestServer(EthernetServer& server): server_(server), routesIndex_(0), bufferIndex_(1) {
 }
 

@@ -1,9 +1,7 @@
 #ifndef restsettings_h
 #define restsettings_h
 
-#ifndef ROUTES_TOTAL
 #define ROUTES_TOTAL 2
-#endif
 
 #ifndef ROUTES_LENGHT
 #define ROUTES_LENGHT 10
@@ -19,10 +17,6 @@
 
 #ifndef HEADERS_LENGTH
 #define HEADERS_LENGTH 185
-#endif
-
-#ifndef HTTP_COMMON_HEADER
-#define HTTP_COMMON_HEADER "Access-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: POST, GET, PUT, OPTIONS\r\nContent-Type: application/json\r\nConnection: close\r\n"
 #endif
 
 #ifndef OUTPUT_BUFFER_SIZE
