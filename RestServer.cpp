@@ -214,9 +214,9 @@ void RestServer::check() {
      *
      */
     if (lineCount > 1 && !bearerMatch) {
-      // if (c == ':') {
-      //   headerValue = true;
-      // }
+      if (c == ':') {
+        headerValue = true;
+      }
       if (c == '\n') {
         if (strstr(bearer, "Bearer") == NULL) {
           h = 0;
@@ -225,12 +225,15 @@ void RestServer::check() {
         else {
           bearerMatch = true;
         }
-        //headerValue = false;
+        headerValue = false;
       }
-      bearer[h++] = c;
 
-      // if (headerValue && c != ':' && cLast != ':')
-      //   bearer[h++] = c;
+      if (headerValue && c != ':' && cLast != ':') {
+          if (c == ' ')
+            bearer[h++] = '=';
+          else
+            bearer[h++] = c;
+      }
     }
 
     cLast = c;
