@@ -1,7 +1,7 @@
 #ifndef restsettings_h
 #define restsettings_h
 
-#define ROUTES_TOTAL 2
+#define ROUTES_TOTAL 1
 
 #ifndef ROUTES_LENGHT
 #define ROUTES_LENGHT 10
@@ -38,5 +38,6 @@
 #define NO_CONTENT "HTTP/1.1 204 No Content\r\n"
 #define UNAUTHORIZED "HTTP/1.1 401 Unauthorized\r\n"
 #define NOT_FOUND "HTTP/1.1 404 Not Found\r\n"
+#define SERVER_ERROR "HTTP/1.1 500 Internal Server Error\r\n"
 
 #endif
