@@ -36,7 +36,7 @@ void RestServer::addRoute(const char * method, const char * route, void (*f)(con
   routesIndex_++;
 }
 
-void RestServer::onNotFound(void (*f)(char* route)) {
+void RestServer::onNotFound(void (*f)(const char* route)) {
   notFoundCallback = f;
 }
 
@@ -47,7 +47,7 @@ void RestServer::addToBuffer(char * value) {
   }
 }
 
-void RestServer::addData(char* name, char * value) {
+void RestServer::addData(const char* name, const char * value) {
   char bufferAux[OUTPUT_BUFFER_SIZE] = {0};
   uint16_t idx = 0;
 

@@ -10,7 +10,7 @@
 struct Routes {
   char* method;
   char* name;
-  void (*callback)(char* query, char* body, char* bearer);
+  void (*callback)(const char* query, const char* body, const char* bearer);
 };
 
 class RestServer {
@@ -20,14 +20,14 @@ public:
   void run();
 
   void addRoute(const char* method, const char* route, void (*f)(const char *, const char *, const char *));
-  void onNotFound(void (*f)(char *));
+  void onNotFound(void (*f)(const char *));
   void sendResponse(const char* status, uint8_t delayTime);
 
   void addData(char* name, String& value);
   void addData(char* name, uint16_t value);
   void addData(char* name, int value);
   void addData(char* name, float value);
-  void addData(char* name, char* value);
+  void addData(const char* name, const char* value);
 
 private:
   Routes routes_[ROUTES_TOTAL];
