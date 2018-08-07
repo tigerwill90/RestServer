@@ -261,6 +261,8 @@ void RestServer::check() {
   // If route match, execute callback
   jsonBuffer[0] = '{';
   if (routeMatch) {
+    //remove empty char in end
+    bearer[strlen(bearer) - 1] = 0;
     routes_[routesIndex].callback(query, body, bearer);
     //LOG("Route callback !");
   } else {
