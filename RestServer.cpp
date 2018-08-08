@@ -145,11 +145,11 @@ void RestServer::check() {
   bool methodCatchFinished = false;
   uint8_t m = 0;
 
-  char bearer[HEADERS_LENGTH] = {0};
+  char bearer[HEADERS_LENGTH] = {'a','c','c','e','s','s','_','t','o','k','e','n','='};
   bool headerValue = false;
   bool bearerMatch = false;
   uint8_t lineCount = 0;
-  uint8_t h = 0;
+  uint8_t h = 13;
 
   bool currentLineIsBlank = true;
   char c;
@@ -219,8 +219,8 @@ void RestServer::check() {
       }
       if (c == '\n') {
         if (strstr(bearer, "Bearer") == NULL) {
-          h = 0;
-          memset(&bearer[h], 0, sizeof(bearer));
+          h = 13;
+          memset(&bearer[h], 0, sizeof(bearer) - 13);
         }
         else {
           bearerMatch = true;
@@ -229,10 +229,13 @@ void RestServer::check() {
       }
 
       if (headerValue && c != ':' && cLast != ':') {
+          /*
           if (c == ' ')
             bearer[h++] = '=';
           else
             bearer[h++] = c;
+          */
+         bearer[h++] = c;
       }
     }
 
