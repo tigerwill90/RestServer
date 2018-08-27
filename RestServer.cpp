@@ -146,7 +146,6 @@ void RestServer::check() {
   uint8_t m = 0;
 
   char bearer[HEADERS_LENGTH] = {'a','c','c','e','s','s','_','t','o','k','e','n','='};
-  bool headerValue = false;
   bool bearerMatch = false;
   uint8_t lineCount = 0;
   uint8_t h = 13;
@@ -209,33 +208,27 @@ void RestServer::check() {
       method[m++] = c;
     // End method catch process /////////////////
 
-    /**
-     * Check for specific Bearer name header and extract it
-     *
-     */
-    if (lineCount > 1 && !bearerMatch) {
-      if (c == ':') {
-        headerValue = true;
-      }
-      if (c == '\n') {
-        if (strstr(bearer, "Bearer") == NULL) {
+    // Check for specific Bearer name header and extract it
+    if (lineCount > 1) {
+      // header value
+      if (cLast != ':' && c != ' ') {
+        bearer[h++] = c;
+        // bearer matching
+        if (!bearerMatch && strstr(bearer, "Bearer") != NULL) {
+          h = 13;
+          memset(&bearer[h], 0, sizeof(bearer) - 13);
+          bearerMatch = true;
+        }
+        // the token is entierly catched, delete \n char
+        if (bearerMatch && c == '\n') {
+          bearer[h-1] = 0;
+          break;
+        }
+        // the line is checked and no bearer found
+        if (!bearerMatch && c == '\n') {
           h = 13;
           memset(&bearer[h], 0, sizeof(bearer) - 13);
         }
-        else {
-          bearerMatch = true;
-        }
-        headerValue = false;
-      }
-
-      if (headerValue && c != ':' && cLast != ':') {
-          /*
-          if (c == ' ')
-            bearer[h++] = '=';
-          else
-            bearer[h++] = c;
-          */
-         bearer[h++] = c;
       }
     }
 

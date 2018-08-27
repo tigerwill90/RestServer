@@ -16,7 +16,7 @@
 #endif
 
 #ifndef HEADERS_LENGTH
-#define HEADERS_LENGTH 155
+#define HEADERS_LENGTH 150
 #endif
 
 #ifndef OUTPUT_BUFFER_SIZE
