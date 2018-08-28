@@ -148,7 +148,8 @@ void RestServer::check() {
   char bearer[HEADERS_LENGTH] = {'t','o','k','e','n','='};
   bool bearerMatch = false;
   uint8_t lineCount = 0;
-  uint8_t h = 6;
+  uint8_t baseLength = 6;
+  uint8_t h = baseLength;
 
   bool currentLineIsBlank = true;
   char c;
@@ -215,8 +216,8 @@ void RestServer::check() {
         bearer[h++] = c;
         // bearer matching
         if (!bearerMatch && strstr(bearer, "Bearer") != NULL) {
-          h = 6;
-          memset(&bearer[h], 0, sizeof(bearer) - 6);
+          h = baseLength;
+          memset(&bearer[h], 0, sizeof(bearer) - baseLength);
           bearerMatch = true;
         }
         // the token is entierly catched, delete \n char
@@ -226,8 +227,8 @@ void RestServer::check() {
         }
         // the line is checked and no bearer found
         if (!bearerMatch && c == '\n') {
-          h = 6;
-          memset(&bearer[h], 0, sizeof(bearer) - 6);
+          h = baseLength;
+          memset(&bearer[h], 0, sizeof(bearer) - baseLength);
         }
       }
     }
